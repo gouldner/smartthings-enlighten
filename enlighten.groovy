@@ -15,15 +15,16 @@
  */
  
 preferences {
-    input("user_id", "text", title: "Enphase User ID", description: "Enphase User Id")
+    input("user_id", "text", title: "Enphase Dev Account User ID", description: "Enphase User Id")
     input("system_id", "text", title: "Enphase System ID", description: "Enphase System Id")
+    input("key", "text", title: "Enphase Dev Account Key", description: "Enphase Key")
     
 }
 metadata {
 	definition (name: "Enlighten Solar System", namespace: "usirsiwal", author: "Umesh Sirsiwal") {
 		capability "Power Meter"
-        capability "Refresh"
-	    capability "Polling"
+                capability "Refresh"
+	        capability "Polling"
 
 	}
 
@@ -38,7 +39,7 @@ metadata {
                     [value: 5, color: "#d04e00"],
                     [value: 10, color: "#f1d801"],
                     [value: 20, color: "#90d2a7"],
-					[value: 30, color: "#44b621"],
+		    [value: 30, color: "#44b621"],
                     [value: 40, color: "#1e9cbb"],
                     [value: 50, color: "#153591"]
     	            ]
@@ -50,7 +51,7 @@ metadata {
                     [value: 5, color: "#d04e00"],
                     [value: 10, color: "#f1d801"],
                     [value: 20, color: "#90d2a7"],
-					[value: 30, color: "#44b621"],
+		    [value: 30, color: "#44b621"],
                     [value: 40, color: "#1e9cbb"],
                     [value: 50, color: "#153591"],
     	            ]
@@ -88,7 +89,7 @@ def refresh() {
 def energyRefresh() {  
   log.debug "Executing 'energyToday'"    
   
-  httpGet("https://api.enphaseenergy.com/api/v2/systems/${settings.system_id}/summary?key=2bff33c35ee9c0b88c439cbe400e52c6&user_id=${settings.user_id}") {resp ->
+  httpGet("https://api.enphaseenergy.com/api/v2/systems/${settings.system_id}/summary?key=${settings.key}&user_id=${settings.user_id}") {resp ->
         if (resp.data) {
         	log.debug "${resp.data}"
             def energyToday = resp.data.energy_today

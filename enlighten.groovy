@@ -30,7 +30,6 @@ metadata {
         attribute "energy_life", "STRING"
         
         fingerprint deviceId: "RRGEnlightenPV"
-	fingerprint inClusters: "0x20,0x27,0x31,0x40,0x43,0x44,0x70,0x72,0x80,0x86"
 	}
 
 	simulator {

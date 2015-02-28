@@ -45,7 +45,7 @@ metadata {
     	            ]
             	)
         	}    
-            valueTile("energy_life", "device.energy_life", width: 1, height: 1, canChangeIcon: true) {
+            valueTile("energy_life", "device.energy_life", width: 2, height: 2, canChangeIcon: true) {
    	         state("energy_life", label: '${currentValue}MWh', unit:"MWh", backgroundColors: [
                     [value: 2, color: "#bc2323"],
                     [value: 5, color: "#d04e00"],

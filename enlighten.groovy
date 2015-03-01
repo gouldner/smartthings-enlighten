@@ -1,7 +1,7 @@
 /**
  *  Enlighten Solar System
  *
- *  Copyright 2015 Umesh Sirsiwal
+ *  Copyright 2015 Umesh Sirsiwal with contribution from Ronald Gouldner
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -15,9 +15,9 @@
  */
  
 preferences {
-    input("user_id", "text", title: "Enphase Dev Account User ID", description: "Enphase User Id")
-    input("system_id", "text", title: "Enphase System ID", description: "Enphase System Id")
-    input("key", "text", title: "Enphase Dev Account Key", description: "Enphase Key")
+    input("user_id", "text", title: "Enphase Dev Account User ID")
+    input("system_id", "text", title: "Enphase System ID")
+    input("key", "text", title: "Enphase Dev Account Key")
     
 }
 metadata {
@@ -25,6 +25,10 @@ metadata {
                     capability "Power Meter"
 		    capability "Refresh"
 		    capability "Polling"
+
+		    attribute "energy_today", "STRING"
+                    attribute "energy_life", "STRING"
+
                     }
 
          simulator {
@@ -57,14 +61,11 @@ metadata {
                         )
         	   }    
                    valueTile("current_power", "device.current_power", width: 1, height: 1) {
-   	             state("current_power", label: '${currentValue}KW', unit:"KW", backgroundColors: [
-                       [value: 0, color: "#000000"],
-                       [value: 1, color: "#778899"],
-                       [value: 2, color: "#808080"],
-                       [value: 3, color: "#C0C0C0"],
-                       [value: 4, color: "#D3D3D3"],
-                       [value: 5, color: "#DCDCDC"],
-                       [value: 6, color: "#FFFFFF"],
+   	             state("current_power", label: '${currentValue}W', unit:"W", backgroundColors: [
+                       [value: 100, color: "#778899"],
+                       [value: 200, color: "#C0C0C0"],
+                       [value: 400, color: "#DCDCDC"],
+                       [value: 600, color: "#FFFFFF"],
                       ]
                      )
         	   }    
@@ -75,7 +76,7 @@ metadata {
 
         
                    main "energy_today"
-                   details(["energy_today", "current_power", "energy_life", "refresh"])
+                   details(["energy_today", "current_power", "energy_life", "refresh"])                        
 	}
 }
 
@@ -97,11 +98,14 @@ def refresh() {
 
 
 def energyRefresh() {  
-  log.debug "Executing 'energyToday'"    
+  log.debug "Executing 'energyToday'"
   
-  httpGet("https://api.enphaseenergy.com/api/v2/systems/${settings.system_id}/summary?key=${settings.key}&user_id=${settings.user_id}") {resp ->
+  def cmd = "https://api.enphaseenergy.com/api/v2/systems/${settings.system_id}/summary?key=${settings.key}&user_id=${settings.user_id}";
+  log.debug "Sending request cmd[${cmd}]"
+  
+  httpGet(cmd) {resp ->
         if (resp.data) {
-           log.debug "${resp.data}"
+            log.debug "${resp.data}"
             def energyToday = resp.data.energy_today
             def energyLife = resp.data.energy_lifetime
             def currentPower = resp.data.current_power
@@ -111,7 +115,7 @@ def energyRefresh() {
             log.debug "Current Power ${currentPower}"
             sendEvent(name: 'energy_today', value: (energyToday/1000))
             sendEvent(name: 'energy_life', value: (energyLife/1000000))
-            sendEvent(name: 'current_power', value: (currentPower/1000))
+            sendEvent(name: 'current_power', value: (currentPower))
 
 
         }

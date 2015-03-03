@@ -37,9 +37,11 @@ metadata {
 	}
 
 	tiles {
-            standardTile("PoweredBy", "device.poweredBy") {
-                state "default", label: "Powered by Enphase Energy"
-                icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.psd"
+            standardTile("PoweredBy", "device.poweredBy", canChangeIcon: true) {
+                state ("default", label: "Powered by Enphase Energy"
+                //,icon:"st.thermostat.auto"
+                //,icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.jpg"
+                )
             }
             valueTile("energy_today", "device.energy_today") {
    	         state("energy_today", label: '${currentValue}KWh T', unit:"KWh", backgroundColors: [
@@ -53,8 +55,12 @@ metadata {
     	            ]
             	)
         	}
-            valueTile("power", "device.power") {
-   	         state("Power", label: '${currentValue}KWh P', unit:"KWh", backgroundColor: "#000000")
+            valueTile("power", "device.power", canChangeIcon: true) {
+   	         state("Power", label: '${currentValue}W P', unit:"W"
+                   //,icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.jpg"
+                   //,icon:"st.thermostat.auto"
+                   ,backgroundColor: "#000000"
+                  )
         	}
             valueTile("energy_life", "device.energy_life", width: 1, height: 1, canChangeIcon: true) {
    	         state("energy_life", label: '${currentValue}MWh L', unit:"MWh", backgroundColors: [
@@ -75,7 +81,7 @@ metadata {
 
         
         main (["power","energy_today"])
-        details(["PoweredBy","power","energy_today", "energy_life", "refresh"])
+        details(["power","energy_today", "energy_life", "refresh","PoweredBy"])
 
 	}
 }
@@ -108,7 +114,7 @@ def energyRefresh() {
         	log.debug "${resp.data}"
             def energyToday = resp.data.energy_today/1000
             def energyLife = resp.data.energy_lifetime/1000000
-            def currentPower = resp.data.current_power/1000
+            def currentPower = resp.data.current_power
             
             log.debug "Energy today ${energyToday}"
             log.debug "Energy life ${energyLife}"

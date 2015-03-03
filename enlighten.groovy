@@ -39,7 +39,7 @@ metadata {
 	tiles {
             standardTile("PoweredBy", "device.poweredBy") {
                 state "default", label: "Powered by Enphase Energy"
-                //icon:"https://s3.amazonaws.com/enterprise-multitenant.3scale.net.3scale.net/enphase-energy/2014/05/06/ENPH_logo_scr_RGB_API_sm-4155f33125cda43a.png?AWSAccessKeyId=AKIAIRYLTWBQ37ZNGBZA&Expires=1425085235&Signature=QWZgPM0keTYDoJ%2BmJ4Ds56rr%2Buo%3D"
+                icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.psd"
             }
             valueTile("energy_today", "device.energy_today") {
    	         state("energy_today", label: '${currentValue}KWh T', unit:"KWh", backgroundColors: [

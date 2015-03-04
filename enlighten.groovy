@@ -23,15 +23,17 @@ preferences {
 metadata {
 	definition (name: "Enlighten Solar System", namespace: "gouldner", author: "Ronald Gouldner") {
 	capability "Power Meter" 
-        capability "Refresh"
+    capability "Refresh"
 	capability "Polling"
         
-        attribute "energy_today", "STRING"
-        attribute "energy_life", "STRING"
+    attribute "energy_today", "STRING"
+    attribute "energy_life", "STRING"
 	attribute "production_level", "STRING"
+	attribute "today_max_prod", "NUMBER"
+	attribute "today_max_day", "STRING"
 	attribute "reported_id", "STRING"
         
-        fingerprint deviceId: "RRGEnlightenPV"
+    fingerprint deviceId: "RRGEnlightenPV"
 	}
 
 	simulator {
@@ -62,6 +64,9 @@ metadata {
 			valueTile("productionLevel", "device.production_level") {
 				state("productionLevel", label: '${currentValue}%', unit:"%", backgroundColor: "#0000FF")
 			}
+			valueTile("todayMaxProd", "device.today_max_prod") {
+				state("todayMaxProd", label: '${currentValue}% Max', unit:"%", backgroundColor: "#0000FF")
+			}
             valueTile("energy_life", "device.energy_life", width: 1, height: 1, canChangeIcon: true) {
    	         state("energy_life", label: '${currentValue}MWh L', unit:"MWh", backgroundColors: [
                     [value: 2, color: "#bc2323"],
@@ -81,7 +86,7 @@ metadata {
 
         
         main (["power","energy_today"])
-        details(["power","energy_today", "energy_life", "productionLevel", "refresh","reported_id"])
+        details(["power","energy_today", "energy_life", "productionLevel", "todayMaxProd", "refresh","reported_id"])
 
 	}
 }
@@ -118,6 +123,17 @@ def energyRefresh() {
 			def systemSize = resp.data.size_w
 			def productionLevel = currentPower/systemSize * 100
 			def systemId = resp.data.system_id
+			def now=new Date()
+			def tz = location.timeZone
+			def todayDay = now.format("dd",tz)
+			def today_max_day = device.currentValue("today_max_day")
+			def today_max_prod = device.currentValue("today_max_prod")
+			def todayMaxProd=today_max_prod
+			
+			// if today max prod less than production level then set to production level
+			if (todayMaxProd < productionLevel) {
+				todayMaxProd = productionLevel
+			}
             
 			log.debug "System Id ${system_id}"
             log.debug "Energy today ${energyToday}"
@@ -125,13 +141,27 @@ def energyRefresh() {
             log.debug "Current Power Level ${currentPower}"
 			log.debug "System Size ${systemSize}"
 			log.debug "Production Level ${currentPower}"
+			log.debug "todayMaxProd ${todayMaxProd}"
+			log.debug "today_max_day ${today_max_day}"
+			log.debug "todayDay ${todayDay}"
+			
+			// If day has changed set today_max_day to new value
+			if (today_max_day == null || today_max_day != todayDay) {
+				log.debug "Setting today_max_day=${todayDay}"
+				sendEvent(name: 'today_max_day', value: (todayDay))
+				// New day reset todayMaxProd
+				todayMaxProd = productionLevel
+			}
             
             delayBetween([sendEvent(name: 'energy_today', value: (energyToday))
                           ,sendEvent(name: 'energy_life', value: (energyLife))
                           ,sendEvent(name: 'power', value: (currentPower))
 						  ,sendEvent(name: 'production_level', value: (productionLevel))
+						  ,sendEvent(name: 'today_max_prod', value: (todayMaxProd))
 						  ,sendEvent(name: 'reported_id', value: (systemId))
 	                     ])
+			
+			
         }
         if(resp.status == 200) {
             	log.debug "poll results returned"

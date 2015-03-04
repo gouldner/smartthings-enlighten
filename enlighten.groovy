@@ -28,6 +28,8 @@ metadata {
         
         attribute "energy_today", "STRING"
         attribute "energy_life", "STRING"
+	attribute "production_level", "STRING"
+	attribute "reported_id", "STRING"
         
         fingerprint deviceId: "RRGEnlightenPV"
 	}
@@ -37,11 +39,10 @@ metadata {
 	}
 
 	tiles {
-            standardTile("PoweredBy", "device.poweredBy", canChangeIcon: true) {
-                state ("default", label: "Powered by Enphase Energy"
-                //,icon:"st.thermostat.auto"
-                //,icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.jpg"
-                )
+            valueTile("reported_id", "device.reported_id") {
+				state ("reported_id", label: '${currentValue} Powered By Enphase', unit:"", backgroundColor: "#0000ff"
+					   //icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.jpg"
+                       )
             }
             valueTile("energy_today", "device.energy_today") {
    	         state("energy_today", label: '${currentValue}KWh T', unit:"KWh", backgroundColors: [
@@ -55,13 +56,12 @@ metadata {
     	            ]
             	)
         	}
-            valueTile("power", "device.power", canChangeIcon: true) {
-   	         state("Power", label: '${currentValue}W P', unit:"W"
-                   //,icon:"https://github.com/gouldner/smartthings-enlighten/raw/master/PoweredByLogo.jpg"
-                   //,icon:"st.thermostat.auto"
-                   ,backgroundColor: "#000000"
-                  )
+            valueTile("power", "device.power") {
+   	         state("Power", label: '${currentValue}KWh P', unit:"KWh", backgroundColor: "#000000")
         	}
+			valueTile("productionLevel", "device.production_level") {
+				state("productionLevel", label: '${currentValue}%', unit:"%", backgroundColor: "#0000FF")
+			}
             valueTile("energy_life", "device.energy_life", width: 1, height: 1, canChangeIcon: true) {
    	         state("energy_life", label: '${currentValue}MWh L', unit:"MWh", backgroundColors: [
                     [value: 2, color: "#bc2323"],
@@ -81,7 +81,7 @@ metadata {
 
         
         main (["power","energy_today"])
-        details(["power","energy_today", "energy_life", "refresh","PoweredBy"])
+        details(["power","energy_today", "energy_life", "productionLevel", "refresh","reported_id"])
 
 	}
 }
@@ -115,16 +115,23 @@ def energyRefresh() {
             def energyToday = resp.data.energy_today/1000
             def energyLife = resp.data.energy_lifetime/1000000
             def currentPower = resp.data.current_power
+			def systemSize = resp.data.size_w
+			def productionLevel = currentPower/systemSize * 100
+			def systemId = resp.data.system_id
             
+			log.debug "System Id ${system_id}"
             log.debug "Energy today ${energyToday}"
             log.debug "Energy life ${energyLife}"
             log.debug "Current Power Level ${currentPower}"
+			log.debug "System Size ${systemSize}"
+			log.debug "Production Level ${currentPower}"
             
             delayBetween([sendEvent(name: 'energy_today', value: (energyToday))
                           ,sendEvent(name: 'energy_life', value: (energyLife))
                           ,sendEvent(name: 'power', value: (currentPower))
+						  ,sendEvent(name: 'production_level', value: (productionLevel))
+						  ,sendEvent(name: 'reported_id', value: (systemId))
 	                     ])
-
         }
         if(resp.status == 200) {
             	log.debug "poll results returned"
